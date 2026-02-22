@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: uni_portal_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - uni_portal_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: uni_portal_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/uni_exam_portal
+      - JWT_SECRET=${JWT_SECRET:-change_this_secret_in_production}
+      - JWT_EXPIRES_IN=7d
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@dept.edu}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Admin@123}
+      - ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - uni_portal_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost:5000/api
+    container_name: uni_portal_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - uni_portal_net
+
+volumes:
+  mongo_data:
+
+networks:
+  uni_portal_net:
+    driver: bridge
