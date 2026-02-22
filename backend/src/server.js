@@ -8,6 +8,7 @@ const path = require('path');
 const connectDB = require('./config/database');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Connect to database
 connectDB();
