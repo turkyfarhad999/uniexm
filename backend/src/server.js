@@ -11,6 +11,9 @@ const app = express();
 
 // Connect to database
 connectDB();
+if (process.env.AUTO_SEED === 'true') {
+  const seed = require('./utils/seed');
+}
 
 // Security middleware
 app.use(helmet({
